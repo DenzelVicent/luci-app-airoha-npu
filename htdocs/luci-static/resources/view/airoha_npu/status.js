@@ -31,7 +31,8 @@ var themeCSS = '\
 /* CPU frequency table row height consistency */\
 #cpu-freq-table .tr{min-height:40px}\
 #cpu-freq-table .td{vertical-align:middle;padding:6px 10px}\
-#cpu-freq-table td:first-child{white-space:nowrap;width:1%}\
+#cpu-freq-table td:first-child{width:33%}\
+#cpu-freq-table td:last-child{text-align:left}\
 #cpu-freq-table select{height:auto;min-height:30px;padding:3px 8px;font-size:13px}\
 #cpu-freq-table input[type="number"]{height:auto;min-height:30px;padding:3px 8px;font-size:13px}\
 #cpu-freq-table button{height:auto;min-height:30px;padding:3px 12px;font-size:13px}\
@@ -42,7 +43,8 @@ var themeCSS = '\
 .soc-table-wrap .table{min-width:600px;margin-bottom:0}\
 /* NPU table */\
 #npu-table .td{padding:6px 10px}\
-#npu-table td:first-child{white-space:nowrap;width:1%}\
+#npu-table td:first-child{width:33%}\
+#npu-table td:last-child{text-align:left}\
 /* Touch optimization */\
 .soc-card select,.soc-card input,.soc-card button{min-height:36px}\
 /* ── Responsive: Tablet ( < 768px ) ── */\
