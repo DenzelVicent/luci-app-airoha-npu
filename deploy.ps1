@@ -18,7 +18,7 @@ Write-Host ""
 # 检查 SSH
 Write-Host "[1/5] 检查连接..." -NoNewline
 try {
-    $null = ssh -o ConnectTimeout=5 -o BatchMode=yes $Target "echo ok" 2>&1
+    $null = ssh -o ConnectTimeout=5 $Target "echo ok" 2>&1
     Write-Host " OK" -ForegroundColor Green
 } catch {
     Write-Host " FAIL" -ForegroundColor Red

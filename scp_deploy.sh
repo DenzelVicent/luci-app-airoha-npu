@@ -14,7 +14,7 @@ echo ""
 
 # 检查 SSH 连通性
 echo "[1/5] 检查连接..."
-if ! ssh -o ConnectTimeout=5 -o BatchMode=yes "$TARGET" "echo ok" >/dev/null 2>&1; then
+if ! ssh -o ConnectTimeout=5 "$TARGET" "echo ok" >/dev/null 2>&1; then
     echo "❌ 无法连接 $TARGET，请检查 IP 和 SSH 配置"
     exit 1
 fi
