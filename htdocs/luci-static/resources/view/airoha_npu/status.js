@@ -19,30 +19,44 @@ var themeCSS = '\
 .soc-text{color:var(--soc-text)}\
 .soc-label{font-size:11px;color:var(--soc-muted)}\
 .soc-bar-track{background:var(--soc-bar-track);border-radius:4px;overflow:hidden}\
-.soc-fe-layout{display:flex;gap:12px;margin-bottom:10px}\
-.soc-fe-left{flex:1.2;min-width:0}\
-.soc-fe-right{flex:1;min-width:0}\
+.soc-fe-layout{display:flex;gap:12px;margin-bottom:10px;padding:0 8px;align-items:stretch}\
+.soc-fe-left{flex:1;min-width:0;display:flex;flex-direction:column}\
+.soc-fe-right{flex:1;min-width:0;display:flex;flex-direction:column}\
 .soc-queue-bar{display:flex;gap:10px;font-size:11px;margin-top:auto;padding-top:6px;border-top:1px solid var(--soc-border)}\
 /* Section spacing */\
 .soc-section{margin-bottom:16px}\
 .soc-section-title{font-size:15px;font-weight:600;margin-bottom:10px;color:var(--soc-text)}\
 /* CPU frequency table row height consistency */\
-#cpu-freq-table .tr{min-height:40px}\
+#cpu-freq-table .tr{height:45px}\
 #cpu-freq-table .td{vertical-align:middle;padding:6px 10px}\
 #cpu-freq-table td:first-child{width:33%}\
 #cpu-freq-table td:last-child{text-align:left}\
 #cpu-freq-table select{height:auto;min-height:30px;padding:3px 8px;font-size:13px}\
 #cpu-freq-table input[type="number"]{height:auto;min-height:30px;padding:3px 8px;font-size:13px}\
 #cpu-freq-table button{height:auto;min-height:30px;padding:3px 12px;font-size:13px}\
+/* NPU table row height consistency */\
+#npu-table .tr{height:45px}\
+#npu-table .td{vertical-align:middle;padding:6px 10px}\
+#npu-table td:first-child{width:33%}\
+#npu-table td:last-child{text-align:left}\
 /* Overclock description inline */\
 .soc-oc-desc{font-size:12px;color:var(--soc-muted);margin-left:8px;white-space:nowrap}\
 /* PPE table responsive wrapper */\
 .soc-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -1px}\
 .soc-table-wrap .table{min-width:600px;margin-bottom:0}\
-/* NPU table */\
-#npu-table .td{padding:6px 10px}\
-#npu-table td:first-child{width:33%}\
-#npu-table td:last-child{text-align:left}\
+/* NPU table (row height set above) */\
+/* PPE config table */\
+#ppe-config-table .tr{height:32px}\
+#ppe-config-table .td,#ppe-config-table .th{vertical-align:middle;padding:4px 10px}\
+#ppe-config-table td:first-child,#ppe-config-table th:first-child{width:33%}\
+#ppe-config-table td:last-child,#ppe-config-table th:last-child{text-align:left}\
+#ppe-config-table td:last-child{font-family:monospace;font-size:12px}\
+/* FE card统一边框和最小高度 */\
+.soc-fe-card{min-height:100px;display:flex;flex-direction:column;flex:1}\
+.soc-fe-gdm,.soc-fe-cdm,.soc-fe-ppe,.soc-fe-pse{border:1px solid var(--soc-border);border-radius:8px;padding:10px 12px;margin-bottom:10px;background:var(--soc-card-bg)}\
+.soc-fe-ppe{border-left:3px solid #2196f3}\
+/* PPE config details arrow rotation */\
+#ppe-config-details[open] #ppe-config-arrow{transform:rotate(90deg)}\
 /* Touch optimization */\
 .soc-card select,.soc-card input,.soc-card button{min-height:36px}\
 /* ── Responsive: Tablet ( < 768px ) ── */\
@@ -162,7 +176,7 @@ var psePortMap = [
 	{ name: 'PPE1', label: 'PPE Eng 1',   color: '#2196f3' },
 	{ name: 'PPE2', label: 'PPE Eng 2',   color: '#2196f3' },
 	{ name: 'CDM3', label: 'CPU DMA 3',   color: '#607d8b' },
-	{ name: 'GDM4', label: 'LAN1 2.5G',   color: '#4caf50' }
+	{ name: 'GDM4', label: 'LAN1 2.5G',   color: '#ff9800' }
 ];
 
 function fmtFreq(khz) { return (!khz || khz === 0) ? 'N/A' : (khz / 1000).toFixed(0) + ' MHz'; }
@@ -194,25 +208,25 @@ function renderFeDiagram(fe, st) {
 		var active = d.tx > 0 || d.rx > 0;
 		var pq = psePort != null ? ports.find(function(p){ return p.port === psePort; }) : null;
 		var drop = (pq && pq.drops > 0) || d.tx_drop > 0 || d.rx_drop > 0;
-		return E('div', { 'class': 'soc-card soc-card-accent', 'style': 'border-left-color:'+color + (drop?';border-color:#f44336':'') }, [
+		return E('div', { 'class': 'soc-fe-gdm soc-fe-card', 'style': 'border-left:3px solid '+color + (drop?';border-color:#f44336':'') }, [
 			E('div', { 'style': 'display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px' }, [
 				E('span', { 'style': 'font-weight:bold;color:'+color+';font-size:14px' }, name),
 				E('span', { 'class': 'soc-label' }, 'P'+psePort)
 			]),
 			E('div', { 'class': 'soc-label', 'style': 'margin-bottom:6px' }, label),
-			E('div', { 'style': 'display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px' }, [
-				E('span', { 'class': 'soc-muted' }, 'TX'), E('span', { 'class': 'soc-text', 'style': 'text-align:right' }, fmtK(d.tx)),
-				E('span', { 'class': 'soc-muted' }, 'RX'), E('span', { 'class': 'soc-text', 'style': 'text-align:right' }, fmtK(d.rx))
-			].concat(d.tx_drop > 0 ? [
-				E('span', { 'style': 'color:#f44336' }, 'TX Drop'), E('span', { 'style': 'color:#f44336;text-align:right' }, fmtK(d.tx_drop))
-			] : []).concat(d.rx_drop > 0 ? [
-				E('span', { 'style': 'color:#f44336' }, 'RX Drop'), E('span', { 'style': 'color:#f44336;text-align:right' }, fmtK(d.rx_drop))
-			] : [])),
-			pq ? E('div', { 'class': 'soc-queue-bar' }, [
-				E('span', { 'class': 'soc-muted' }, 'IQ '+pq.iq),
-				E('span', { 'class': 'soc-muted' }, 'OQ '+pq.oq),
-				pq.drops > 0 ? E('span', { 'style': 'color:#f44336' }, 'Drop '+fmtK(pq.drops)) : null
-			].filter(Boolean)) : null
+			E('div', { 'style': 'display:flex;align-items:center;min-height:32px;font-size:12px;margin-bottom:4px' }, [
+				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('发送: ')), E('span', { 'class': 'soc-text' }, fmtK(d.tx))]),
+				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('接收: ')), E('span', { 'class': 'soc-text' }, fmtK(d.rx))]),
+				E('span', { 'style': 'flex:1' }, [
+					E('span', { 'class': 'soc-muted' }, _('丢包: ')),
+					E('span', { 'style': 'color:' + ((d.tx_drop || 0) + (d.rx_drop || 0) > 0 ? '#f44336' : 'inherit') }, fmtK((d.tx_drop || 0) + (d.rx_drop || 0)))
+				])
+			]),
+			pq ? E('div', { 'style': 'display:flex;align-items:center;min-height:32px;font-size:12px' }, [
+				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('入队: ') + pq.iq)]),
+				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('出队: ') + pq.oq)]),
+				E('span', { 'style': 'flex:1' }, pq.drops > 0 ? [E('span', { 'style': 'color:#f44336' }, _('丢包: ') + fmtK(pq.drops))] : [])
+			]) : null
 		]);
 	}
 
@@ -223,25 +237,27 @@ function renderFeDiagram(fe, st) {
 		var pct = total > 0 ? ((d.rx_hwf/total)*100).toFixed(1) : '0.0';
 		var barCol = total===0 ? 'var(--soc-border)' : parseFloat(pct)>80 ? '#4caf50' : parseFloat(pct)>50 ? '#ff9800' : '#f44336';
 		var pq = psePort != null ? ports.find(function(p){ return p.port === psePort; }) : null;
-		return E('div', { 'class': 'soc-card' }, [
-			E('div', { 'style': 'display:flex;justify-content:space-between;margin-bottom:4px' }, [
+		return E('div', { 'class': 'soc-fe-cdm soc-fe-card', 'style': 'border-left:3px solid #607d8b' }, [
+			E('div', { 'style': 'display:flex;justify-content:space-between;margin-bottom:6px' }, [
 				E('span', { 'style': 'font-weight:bold;color:#607d8b;font-size:13px' }, name),
 				E('span', { 'class': 'soc-label' }, label+' (P'+psePort+')')
 			]),
-			E('div', { 'class': 'soc-text', 'style': 'font-size:12px;margin-bottom:4px' }, _('HW Offload: ') + pct + '%'),
-			E('div', { 'class': 'soc-bar-track', 'style': 'height:6px' }, [
-				E('div', { 'style': 'background:'+barCol+';height:100%;width:'+pct+'%;transition:width .5s;border-radius:4px' })
+			E('div', { 'style': 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px' }, [
+				E('span', { 'class': 'soc-text', 'style': 'font-size:12px' }, _('硬件卸载: ') + pct + '%'),
+				E('div', { 'class': 'soc-bar-track', 'style': 'height:6px;flex:1;margin-left:10px' }, [
+					E('div', { 'style': 'background:'+barCol+';height:100%;width:'+pct+'%;transition:width .5s;border-radius:4px' })
+				])
 			]),
-			E('div', { 'style': 'display:flex;justify-content:space-between;font-size:11px;margin-top:4px' }, [
-				E('span', { 'class': 'soc-muted' }, _('CPU: ') + fmtK(d.rx_cpu||0)),
-				E('span', { 'class': 'soc-muted' }, _('HWF: ') + fmtK(d.rx_hwf||0)),
-				E('span', { 'class': 'soc-muted' }, _('TX: ') + fmtK(d.tx||0))
+			E('div', { 'style': 'display:flex;align-items:center;min-height:32px;font-size:12px' }, [
+				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('CPU: ') + fmtK(d.rx_cpu||0))]),
+				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('硬件转发: ') + fmtK(d.rx_hwf||0))]),
+				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('发送: ') + fmtK(d.tx||0))])
 			]),
-			pq ? E('div', { 'class': 'soc-queue-bar' }, [
-				E('span', { 'class': 'soc-muted' }, 'IQ '+pq.iq),
-				E('span', { 'class': 'soc-muted' }, 'OQ '+pq.oq),
-				pq.drops > 0 ? E('span', { 'style': 'color:#f44336' }, 'Drop '+fmtK(pq.drops)) : null
-			].filter(Boolean)) : null
+			pq ? E('div', { 'style': 'display:flex;align-items:center;min-height:32px;font-size:12px' }, [
+				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('入队: ') + pq.iq)]),
+				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('出队: ') + pq.oq)]),
+				E('span', { 'style': 'flex:1' }, pq.drops > 0 ? [E('span', { 'style': 'color:#f44336' }, _('丢包: ') + fmtK(pq.drops))] : [])
+			]) : null
 		]);
 	}
 
@@ -252,29 +268,30 @@ function renderFeDiagram(fe, st) {
 	var pseCol = parseFloat(pseP)>80?'#f44336':parseFloat(pseP)>50?'#ff9800':'#4caf50';
 
 	// PPE engines card
-	var ppeCard = E('div', { 'class': 'soc-card', 'style': 'border-color:#2196f3;margin-bottom:10px' }, [
-		E('div', { 'style': 'display:flex;justify-content:space-between;align-items:center;margin-bottom:4px' }, [
-			E('span', { 'style': 'font-weight:bold;color:#2196f3;font-size:14px' }, 'PPE Engines'),
+	var ppeCard = E('div', { 'class': 'soc-fe-ppe soc-fe-card' }, [
+		E('div', { 'style': 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px' }, [
+			E('span', { 'style': 'font-weight:bold;color:#2196f3;font-size:14px' }, 'PPE ' + _('引擎')),
 			E('span', { 'class': 'soc-label' }, 'P5 / P6 / P7')
 		]),
-		E('div', { 'style': 'display:flex;gap:16px;font-size:12px' }, [
-			E('span', {}, [
-				E('span', { 'class': 'soc-muted' }, _('Bound ')),
+		E('div', { 'style': 'display:flex;align-items:center;min-height:32px;font-size:12px;flex:1' }, [
+			E('span', { 'style': 'flex:1' }, [
+				E('span', { 'class': 'soc-muted' }, _('已绑定: ')),
 				E('span', { 'class': 'soc-text', 'style': 'font-weight:bold', 'id': 'fe-ppe-bound' }, (st.offload_bound||0).toString())
 			]),
-			E('span', {}, [
-				E('span', { 'class': 'soc-muted' }, _('Total ')),
+			E('span', { 'style': 'flex:1' }, [
+				E('span', { 'class': 'soc-muted' }, _('总计: ')),
 				E('span', { 'class': 'soc-text', 'id': 'fe-ppe-total' }, (st.offload_total||0).toString())
-			])
+			]),
+			E('span', { 'style': 'flex:1' }, [])
 		])
 	]);
 
 	return E('div', { 'id': 'fe-diagram' }, [
 		// PSE buffer bar
-		E('div', { 'class': 'soc-card', 'style': 'margin-bottom:10px' }, [
+		E('div', { 'class': 'soc-fe-pse', 'style': 'margin:0 8px 10px' }, [
 			E('div', { 'style': 'display:flex;justify-content:space-between;margin-bottom:4px' }, [
-				E('span', { 'class': 'soc-text', 'style': 'font-weight:bold;font-size:13px' }, _('PSE Shared Buffer')),
-				E('span', { 'class': 'soc-muted', 'style': 'font-size:12px' }, (fe.pse_used||0) + _(' used / ') + (fe.pse_free||0) + _(' free (') + pseP + '%)')
+				E('span', { 'class': 'soc-text', 'style': 'font-weight:bold;font-size:13px' }, _('PSE 共享缓冲区')),
+				E('span', { 'class': 'soc-muted', 'style': 'font-size:12px' }, (fe.pse_used||0) + _(' 已用 / ') + (fe.pse_free||0) + _(' 空闲 (') + pseP + '%)')
 			]),
 			E('div', { 'class': 'soc-bar-track', 'style': 'height:8px' }, [
 				E('div', { 'style': 'background:'+pseCol+';height:100%;width:'+pseP+'%;border-radius:4px;transition:width .5s' })
@@ -285,8 +302,8 @@ function renderFeDiagram(fe, st) {
 			// Left: GDM ports
 			E('div', { 'class': 'soc-fe-left' }, [
 				gdmCard('gdm2', 'PON & WAN', 'GDM2 (USXGMII 10G)', '#4caf50', 1),
-				gdmCard('gdm4', 'LAN1', 'GDM4 (EN8811H 2.5G)', '#4caf50', 9),
-				gdmCard('gdm1', 'LAN2/3/4', 'GDM1 (Internal Switch 1G)', '#ff9800', 0)
+				gdmCard('gdm4', 'LAN1', 'GDM4 (EN8811H 2.5G)', '#ff9800', 9),
+				gdmCard('gdm1', 'LAN2/3/4', 'GDM1 (内部交换 1G)', '#ff9800', 0)
 			]),
 			// Right: CDM + PPE
 			E('div', { 'class': 'soc-fe-right' }, [
@@ -379,8 +396,23 @@ function renderOcControls() {
 	}},_('Apply'));
 	return E('div',{'style':'display:flex;align-items:center;gap:8px;flex-wrap:wrap'},[
 		inp, E('span',{'class':'soc-muted'},'MHz'), btn,
-		E('span',{'class':'soc-oc-desc'},_('Direct PLL programming. Governor locked to performance mode. Stock max: 1200 MHz. Tested stable up to 1500 MHz.'))
+		E('span',{'class':'soc-oc-desc'},_('直接写入 PLL 寄存器。调频策略锁定为性能模式。标称最高 1200 MHz，实测 1500 MHz 稳定。'))
 	]);
+}
+
+/* ── PPE Config Table ── */
+function renderPpeConfigRows(config) {
+	if (!config) return [];
+	return config.split('\n').filter(function(line){ return line.trim(); }).map(function(line) {
+		var parts = line.split(':');
+		if (parts.length < 2) return null;
+		var key = parts[0].trim();
+		var val = parts.slice(1).join(':').trim();
+		return E('tr',{'class':'tr'},[
+			E('td',{'class':'td'}, E('code',{'style':'font-size:11px;color:var(--soc-muted)'}, key)),
+			E('td',{'class':'td'}, E('code',{'style':'font-size:11px'}, val))
+		]);
+	}).filter(Boolean);
 }
 
 /* ── PPE Table ── */
@@ -409,65 +441,69 @@ return view.extend({
 		var tempDisplay = cpuTemp > 0 ? (cpuTemp + ' °C') : 'N/A';
 
 		var view = E('div',{'class':'cbi-map'},[
-			E('h2',{'style':'margin-top:8px;margin-bottom:14px'},_('Airoha SoC Status')),
+			E('h2',{'style':'margin-top:8px;margin-bottom:14px'},_('Airoha SoC 状态')),
 			// CPU Frequency
 			E('div',{'class':'cbi-section soc-section'},[
-				E('h3',{},_('CPU Frequency')),
+				E('h3',{},_('CPU 频率')),
 				E('table',{'class':'table','id':'cpu-freq-table'},[
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Current Frequency'))), E('td',{'class':'td'}, renderFreqBar(st.cpu_hw_freq,st.cpu_min_freq,st.cpu_max_freq,st.pll_freq_mhz,st.cpu_governor,freqSource)) ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('CPU Temperature'))), E('td',{'class':'td','id':'cpu-temp'}, tempDisplay) ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Governor'))), E('td',{'class':'td'}, renderGovSelect(st.cpu_avail_governors,st.cpu_governor)) ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Max Frequency'))), E('td',{'class':'td'}, renderMaxFreqSelect(st.cpu_avail_freqs,st.cpu_max_freq)) ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Overclock'))), E('td',{'class':'td'}, renderOcControls()) ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('CPU Cores'))), E('td',{'class':'td'},(st.cpu_count||0).toString()) ])
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('当前频率'))), E('td',{'class':'td'}, renderFreqBar(st.cpu_hw_freq,st.cpu_min_freq,st.cpu_max_freq,st.pll_freq_mhz,st.cpu_governor,freqSource)) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('CPU 温度'))), E('td',{'class':'td','id':'cpu-temp'}, tempDisplay) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('调频策略'))), E('td',{'class':'td'}, renderGovSelect(st.cpu_avail_governors,st.cpu_governor)) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('最高频率'))), E('td',{'class':'td'}, renderMaxFreqSelect(st.cpu_avail_freqs,st.cpu_max_freq)) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('超频'))), E('td',{'class':'td'}, renderOcControls()) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('CPU 核心数'))), E('td',{'class':'td'},(st.cpu_count||0).toString()) ])
 				])
 			]),
 			// NPU
 			E('div',{'class':'cbi-section soc-section'},[
 				E('h3',{},_('NPU')),
 				E('table',{'class':'table','id':'npu-table'},[
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('NPU Status'))),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('NPU 状态'))),
 						E('td',{'class':'td','id':'npu-status'}, st.npu_loaded ?
-							E('span',{'class':'label-success'},_('Active')+(st.npu_device?' ('+st.npu_device+')':'')) :
-							E('span',{'class':'label-danger'},_('Not Active'))) ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('SoC Platform'))),
+							E('span',{'class':'label-success'},_('已激活')) :
+							E('span',{'class':'label-danger'},_('未激活'))) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('SoC 平台'))),
 						E('td',{'class':'td','id':'npu-compatible'}, st.npu_compatible || 'N/A') ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Firmware Version'))),
-						E('td',{'class':'td','id':'npu-fw-ver'}, [
-							E('span', {'id':'npu-fw-dmesg'}, st.npu_fw_ver || ''),
-							st.npu_fw_ver && st.npu_version && st.npu_version !== 'Unknown' ? E('span', {'class':'soc-muted'}, ' | ') : null,
-							E('span', {'class':'soc-muted', 'id':'npu-fw-bin'}, st.npu_version && st.npu_version !== 'Unknown' ? _('Binary: ') + st.npu_version : '')
-						].filter(Boolean)) ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Clock / Cores'))),
-						E('td',{'class':'td','id':'npu-clk-cores'}, (st.npu_clock?(st.npu_clock/1e6).toFixed(0)+' MHz':'N/A')+' | '+(st.npu_cores||0)+' cores') ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Reserved Memory'))),
-						E('td',{'class':'td','id':'npu-memory'}, [
-							E('span', {}, calcTotalMem(memR)),
-							E('span', {'class':'soc-muted'}, ' ('+memR.length+' regions)'),
-							st.npu_mem_region_names ? E('div', {'class':'soc-muted', 'style':'font-size:11px;margin-top:2px'}, st.npu_mem_region_names) : null
-						]) ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Description'))),
-						E('td',{'class':'td'}, '8x RISC-V via PCIe RAM — PPE init, flow/PON offload, packet processing') ])
-				]),
-				// PPE Config (collapsible, only show if data available)
-				st.ppe_config ? E('details', {'style':'margin-top:8px;font-size:12px'}, [
-					E('summary', {'style':'cursor:pointer;color:var(--soc-muted);font-size:12px'}, _('PPE Config Registers')),
-					E('pre', {'id':'ppe-config-pre', 'style':'background:var(--soc-bar-track);padding:8px;border-radius:4px;overflow-x:auto;margin:6px 0 0;font-size:11px;line-height:1.6;white-space:pre-wrap'}, st.ppe_config)
-				]) : null
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('固件版本'))),
+						E('td',{'class':'td','id':'npu-fw-ver'}, st.npu_version && st.npu_version !== 'Unknown' ? st.npu_version : (st.npu_fw_ver || 'N/A')) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('时钟 / 核心数'))),
+						E('td',{'class':'td','id':'npu-clk-cores'}, (st.npu_clock?(st.npu_clock/1e6).toFixed(0)+' MHz':'N/A')+' | '+(st.npu_cores||0)+' ' + _('核心')) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('保留内存'))),
+						E('td',{'class':'td','id':'npu-memory'}, calcTotalMem(memR)) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('说明'))),
+						E('td',{'class':'td'}, '8x RISC-V 通过 PCIe 连接 RAM — PPE 初始化、流/PON 卸载、数据包处理') ])
+				])
 			]),
+			// PPE Config (separate collapsible section)
+			st.ppe_config ? E('div',{'class':'cbi-section soc-section'},[
+				E('details',{'id':'ppe-config-details','style':'border:1px solid var(--soc-border);border-radius:8px;padding:10px 12px;background:var(--soc-card-bg)'},[
+					E('summary',{'style':'cursor:pointer;font-size:15px;font-weight:600;color:var(--soc-text);list-style:none;display:flex;align-items:center'}, [
+						E('span',{'id':'ppe-config-arrow','style':'margin-right:8px;font-size:12px;transition:transform .2s'},'▶'),
+						_('PPE 配置寄存器')
+					]),
+					E('div',{'style':'font-size:13px;color:var(--soc-muted);margin:8px 0 10px 20px'},_('PPE 硬件转发引擎的底层寄存器配置，用于调试和诊断。')),
+					E('div',{'class':'soc-table-wrap'},[
+						E('table',{'class':'table','id':'ppe-config-table'},[
+							E('tr',{'class':'tr cbi-section-table-titles'},[
+								E('th',{'class':'th'},_('寄存器')), E('th',{'class':'th'},_('值'))
+							])
+						].concat(renderPpeConfigRows(st.ppe_config)))
+					])
+				])
+			]) : null,
 			// Hardware Offload Engine
 			E('div',{'class':'cbi-section soc-section'},[
-				E('h3',{},_('Hardware Offload Engine')),
+				E('h3',{},_('硬件卸载引擎')),
 				E('div',{'id':'fe-container'}, renderFeDiagram(fe, st))
 			]),
 			// PPE Flow Table - with responsive scroll wrapper
 			E('div',{'class':'cbi-section soc-section'},[
-				E('h3',{},_('PPE Flow Offload Entries')),
+				E('h3',{},_('PPE 硬件流表')),
 				E('div',{'class':'soc-table-wrap'},[
 					E('table',{'class':'table','id':'ppe-entries-table'},[
 						E('tr',{'class':'tr cbi-section-table-titles'},[
-							E('th',{'class':'th'},_('Index')), E('th',{'class':'th'},_('State')), E('th',{'class':'th'},_('Type')),
-							E('th',{'class':'th'},_('Original Flow')), E('th',{'class':'th'},_('New Flow')), E('th',{'class':'th'},_('Ethernet'))
+							E('th',{'class':'th'},_('索引')), E('th',{'class':'th'},_('状态')), E('th',{'class':'th'},_('类型')),
+							E('th',{'class':'th'},_('原始流')), E('th',{'class':'th'},_('新流')), E('th',{'class':'th'},_('以太网'))
 						])
 					].concat(renderPpeRows(entries)))
 				])
@@ -494,7 +530,7 @@ return view.extend({
 				var fs=document.getElementById('cpu-maxfreq-select'); if(fs&&!fs.matches(':focus')) fs.value=(st.cpu_max_freq||0).toString();
 
 				var se=document.getElementById('npu-status');
-				if(se){se.innerHTML='';var sp=document.createElement('span');sp.className=st.npu_loaded?'label-success':'label-danger';sp.textContent=st.npu_loaded?(_('Active')+(st.npu_device?' ('+st.npu_device+')':'')):_('Not Active');se.appendChild(sp);}
+				if(se){se.innerHTML='';var sp=document.createElement('span');sp.className=st.npu_loaded?'label-success':'label-danger';sp.textContent=st.npu_loaded?_('已激活'):_('未激活');se.appendChild(sp);}
 
 				var fc=document.getElementById('fe-container'); if(fc){fc.innerHTML='';fc.appendChild(renderFeDiagram(fe, st));}
 
