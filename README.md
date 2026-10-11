@@ -1,175 +1,174 @@
 # luci-app-airoha-npu
 
-Real-time monitoring and management dashboard for the Airoha AN7581 SoC on OpenWrt. Covers NPU offload, CPU frequency, Frame Engine internals, and PPE flow tables.
+Airoha AN7581 SoC 实时监测与管理面板，适用于 OpenWrt。涵盖 NPU 卸载、CPU 频率、Frame Engine 内部状态及 PPE 流表。
 
-**[Download](https://github.com/luanmuc/luci-app-airoha-npu/releases/latest)**
+**[下载](https://github.com/luanmuc/luci-app-airoha-npu/releases/latest)**
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)
 ![OpenWrt](https://img.shields.io/badge/OpenWrt-24.10%2B-brightgreen.svg)
 ![Version](https://img.shields.io/badge/version-1.2.1-orange.svg)
 
-## Screenshots
+## 界面截图
 
-### CPU Frequency & Overclock
-![CPU Frequency](screenshots/cpu-frequency.png)
+### CPU 频率与超频
+![CPU 频率](screenshots/cpu-frequency.png)
 
-### NPU & Offload Engine
-![NPU & Offload Engine](screenshots/npu-offload-engine.png)
+### NPU 与卸载引擎
+![NPU 与卸载引擎](screenshots/npu-offload-engine.png)
 
-### PPE Flow Offload Table
-![PPE Flow Table](screenshots/ppe-flow-table.png)
+### PPE 流卸载表
+![PPE 流表](screenshots/ppe-flow-table.png)
 
-## Features
+## 功能特性
 
-### CPU Frequency Management
-- Current frequency display with visual bar graph
-- Governor selection (performance, ondemand, schedutil, etc.)
-- Max frequency selection from available OPP entries
-- Direct PLL overclock control (500-1600 MHz) with hardware register programming
-- Overclock detection and warning for unstable frequencies
+### CPU 频率管理
+- 当前频率显示（可视化柱状图）
+- 调度策略选择（performance、ondemand、schedutil 等）
+- 从可用 OPP 条目中选择最大频率
+- 直接 PLL 超频控制（500-1600 MHz），通过硬件寄存器编程实现
+- 超频检测与不稳定频率警告
 
-### NPU & Offload Engine
-- NPU firmware version (TLB format), clock frequency, core count
-- NPU load status (active/inactive) and reserved memory regions
-- PPE flow offload summary (bound / total entries)
+### NPU 与卸载引擎
+- NPU 固件版本（TLB 格式）、时钟频率、核心数
+- NPU 负载状态（活跃/非活跃）及保留内存区域
+- PPE 流卸载摘要（已绑定 / 总条目数）
 
-### Frame Engine Visualization
-- **PSE Shared Buffer** usage bar (congestion indicator)
-- **GDM port cards** with live TX/RX packet counters and drop counts:
-  - GDM1: Internal Switch (1G LAN3/4)
-  - GDM2: WAN (USXGMII 10G)
-  - GDM4: LAN2 (USXGMII 10G)
-- **CDM offload ratio** bars — HW-forwarded (PPE) vs CPU-path packets
-- **PSE Port Queue Status** grid (P0-P9) with IQ/OQ queue depths and drop counts
+### Frame Engine 可视化
+- **PSE 共享缓冲区** 使用率指示条（拥塞指标）
+- **GDM 端口卡片**，实时显示 TX/RX 数据包计数与丢包数：
+  - GDM1：内部交换机（1G LAN3/4）
+  - GDM2：WAN（USXGMII 10G）
+  - GDM4：LAN2（USXGMII 10G）
+- **CDM 卸载比率** 指示条 — 硬件转发（PPE）vs CPU 路径数据包对比
+- **PSE 端口队列状态** 网格（P0-P9），含 IQ/OQ 队列深度与丢包计数
 
-### PPE Flow Offload Table
-- First 100 PPE entries with state (BND/UNB), type (IPv4/IPv6/L2B), 5-tuple, and MAC addresses
-- Auto-refreshes every 5 seconds
+### PPE 流卸载表
+- 显示前 100 条 PPE 条目，包含状态（BND/UNB）、类型（IPv4/IPv6/L2B）、五元组及 MAC 地址
+- 每 5 秒自动刷新
 
-### Theme Support
-- Auto-detects dark/light mode by sampling page background luminance at runtime
-- Works with Glass, Bootstrap, Bootstrap-dark, and any LuCI theme
-- No hardcoded colors — uses CSS custom properties throughout
+### 主题适配
+- 运行时采样页面背景亮度，自动检测深色/浅色模式
+- 兼容 Glass、Bootstrap、Bootstrap-dark 及所有 LuCI 主题
+- 全程使用 CSS 自定义属性，无硬编码颜色
 
-## Requirements
+## 系统要求
 
-- OpenWrt with LuCI (24.10+)
-- Airoha AN7581 target (`@TARGET_airoha`)
-- PPE debugfs (`/sys/kernel/debug/ppe/entries`)
-- **`devmem`** busybox applet — required for Frame Engine register access and CPU overclock (`CONFIG_BUSYBOX_DEFAULT_DEVMEM=y`)
-- Optional: [air_tools](https://github.com/merbanan/air_tools) scripts for additional Frame Engine debugging
+- 搭载 LuCI 的 OpenWrt（24.10+）
+- Airoha AN7581 目标平台（`@TARGET_airoha`）
+- PPE debugfs（`/sys/kernel/debug/ppe/entries`）
+- **`devmem`** busybox 小程序 — Frame Engine 寄存器访问和 CPU 超频必需（`CONFIG_BUSYBOX_DEFAULT_DEVMEM=y`）
+- 可选：[air_tools](https://github.com/merbanan/air_tools) 脚本，用于更多 Frame Engine 调试功能
 
-## Installation
+## 安装方法
 
-### From OpenWrt build
+### 集成到 OpenWrt 编译
 ```sh
-# Add to your build tree
+# 添加到编译树
 git clone https://github.com/luanmuc/luci-app-airoha-npu.git package/luci-app-airoha-npu
 
-# Enable in menuconfig
+# 在 menuconfig 中启用
 make menuconfig
-# Navigate to: LuCI -> Applications -> luci-app-airoha-npu
+# 导航至：LuCI -> Applications -> luci-app-airoha-npu
 
-# Build
+# 编译
 make package/luci-app-airoha-npu/compile V=s
 ```
 
-### Manual install (dev)
+### 手动安装（开发调试）
 ```sh
-# Copy files to router
+# 将文件复制到路由器
 scp root/usr/libexec/rpcd/luci.airoha_npu root@router:/usr/libexec/rpcd/
 scp root/usr/share/luci/menu.d/luci-app-airoha-npu.json root@router:/usr/share/luci/menu.d/
 scp root/usr/share/rpcd/acl.d/luci-app-airoha-npu.json root@router:/usr/share/rpcd/acl.d/
 scp htdocs/luci-static/resources/view/airoha_npu/status.js root@router:/www/luci-static/resources/view/airoha_npu/
 
-# Set permissions and restart
+# 设置权限并重启 rpcd
 ssh root@router 'chmod +x /usr/libexec/rpcd/luci.airoha_npu && /etc/init.d/rpcd restart'
 ```
 
-## Data Sources
+## 数据来源
 
-| Data | Source | Required |
-|------|--------|----------|
-| NPU status | `/sys/bus/platform/drivers/airoha-npu/`, `dmesg` | Yes |
-| CPU frequency | `/sys/devices/system/cpu/cpufreq/policy0/` | Yes |
-| Overclock PLL | `devmem` registers (0x1fa202b4, 0x1fa202b8) | devmem |
-| PPE entries | `/sys/kernel/debug/ppe/{entries,bind}` | Yes |
-| Frame Engine (GDM/CDM/PSE) | `devmem` registers (0x1fb50xxx-0x1fb53xxx) | devmem |
+| 数据 | 来源 | 是否必需 |
+|------|------|----------|
+| NPU 状态 | `/sys/bus/platform/drivers/airoha-npu/`、`dmesg` | 是 |
+| CPU 频率 | `/sys/devices/system/cpu/cpufreq/policy0/` | 是 |
+| 超频 PLL | `devmem` 寄存器（0x1fa202b4、0x1fa202b8） | devmem |
+| PPE 条目 | `/sys/kernel/debug/ppe/{entries,bind}` | 是 |
+| Frame Engine（GDM/CDM/PSE） | `devmem` 寄存器（0x1fb50xxx-0x1fb53xxx） | devmem |
 
-## Project Structure
+## 项目结构
 
 ```
 luci-app-airoha-npu/
-├── Makefile                                          # OpenWrt package build
+├── Makefile                                          # OpenWrt 软件包构建
 ├── htdocs/
 │   └── luci-static/resources/view/airoha_npu/
-│       └── status.js                                 # LuCI JavaScript view
+│       └── status.js                                 # LuCI JavaScript 视图
 ├── root/
 │   └── usr/
 │       ├── libexec/rpcd/
-│       │   └── luci.airoha_npu                       # RPC backend (shell)
+│       │   └── luci.airoha_npu                       # RPC 后端（Shell 脚本）
 │       └── share/
 │           ├── luci/menu.d/
-│           │   └── luci-app-airoha-npu.json          # Menu config
+│           │   └── luci-app-airoha-npu.json          # 菜单配置
 │           └── rpcd/acl.d/
-│               └── luci-app-airoha-npu.json          # ACL permissions
-└── screenshots/
+│               └── luci-app-airoha-npu.json          # ACL 权限
+└── screenshots/                                      # 界面截图
 ```
 
-## RPC Methods
+## RPC 方法
 
-| Method | Description | Parameters |
-|--------|-------------|------------|
-| `getStatus` | NPU, CPU, PPE summary | — |
-| `getPpeEntries` | PPE flow table (first 100) | — |
-| `getFrameEngine` | PSE/GDM/CDM register counters | — |
-| `setGovernor` | Change CPU governor | `governor` |
-| `setMaxFreq` | Set CPU max frequency | `freq` (kHz) |
-| `setOverclock` | Direct PLL frequency set | `freq_mhz` |
+| 方法 | 说明 | 参数 |
+|------|------|------|
+| `getStatus` | NPU、CPU、PPE 摘要 | — |
+| `getPpeEntries` | PPE 流表（前 100 条） | — |
+| `getFrameEngine` | PSE/GDM/CDM 寄存器计数 | — |
+| `setGovernor` | 更改 CPU 调度策略 | `governor` |
+| `setMaxFreq` | 设置 CPU 最大频率 | `freq`（kHz） |
+| `setOverclock` | 直接 PLL 频率设定 | `freq_mhz` |
 
-## Version History
+## 版本历史
 
 ### v1.2.1
-- Fixed PSE port mapping table (corrected P0-P9 indices, added missing P9)
-- Fixed translation string mismatches (updated NPU description)
-- Fixed JSON output escaping for special characters
-- Fixed sleep 0.02 compatibility issue (switched to usleep)
-- Fixed PPE entry type field trailing space
-- Added dmesg parsing fallback to /proc/iomem
-- Added overclock error rollback mechanism
-- Added GDM3 counter documentation
-- Improved Argon theme detection (light mode support)
-- Updated README version badge and download links
+- 修复 PSE 端口映射表（修正 P0-P9 索引，补充缺失的 P9）
+- 修复翻译字符串不匹配问题（更新 NPU 描述）
+- 修复 JSON 输出中特殊字符的转义
+- 修复 sleep 0.02 兼容性问题（改用 usleep）
+- 修复 PPE 条目类型字段尾部空格
+- 新增 dmesg 解析作为 /proc/iomem 的回退方案
+- 新增超频失败回滚机制
+- 新增 GDM3 计数器文档说明
+- 改进 Argon 主题检测（支持浅色模式）
+- 更新 README 版本徽章和下载链接
 
 ### v1.2.0
-- Cleaned up WiFi-related features for XG-040G-MD wired-only device
-- Removed WiFi DMA port from PSE queue display
-- Updated UI descriptions for pure wired Ethernet configuration
-- Fixed rpcd script permissions
+- 移除 XG-040G-MD 有线设备的 WiFi 相关功能
+- 从 PSE 队列显示中移除 WiFi DMA 端口
+- 更新纯有线以太网配置的 UI 描述
+- 修复 rpcd 脚本权限
 
 ### v1.1.0
-- Added independent CPU temperature reading from thermal_zone0
-- Added PLL register fallback frequency when cpufreq unavailable
-- Added firmware path fallback for EN7581 compatibility
-- Improved dark mode and responsive layout
-
+- 新增从 thermal_zone0 独立读取 CPU 温度
+- 新增 cpufreq 不可用时 PLL 寄存器频率回退
+- 新增 EN7581 兼容性的固件路径回退
+- 改进深色模式和响应式布局
 
 ### v1.0.1
-- Unified Frame Engine diagram with architectural layout matching AN7581 data paths
-- Added NPU and PPE Engine cards with live status and flow counts
-- Fixed GDM4 register addresses (0x2500, not 0x3500)
+- 统一 Frame Engine 图表，架构布局匹配 AN7581 数据路径
+- 新增 NPU 和 PPE 引擎卡片，含实时状态和流计数
+- 修复 GDM4 寄存器地址（0x2500，非 0x3500）
 
 ### v1.0.0
-- CPU frequency management with governor and overclock controls
-- NPU & Offload Engine monitoring
-- Frame Engine visualization (GDM ports, CDM offload ratio, PSE queues)
-- PPE flow offload table with auto-refresh
-- Theme-adaptive dark/light mode detection
+- CPU 频率管理，含调度策略和超频控制
+- NPU 与卸载引擎监控
+- Frame Engine 可视化（GDM 端口、CDM 卸载比率、PSE 队列）
+- PPE 流卸载表，支持自动刷新
+- 主题自适应深色/浅色模式检测
 
-## License
+## 许可证
 
 Apache-2.0
 
-## Author
+## 作者
 
-Ryan Chen — Created for W1700K router (Airoha AN7581 + MT7996 BE19000)
+Ryan Chen — 为 W1700K 路由器（Airoha AN7581 + MT7996 BE19000）创建
