@@ -35,6 +35,8 @@ var themeCSS = '\
 #cpu-freq-table select{height:auto;min-height:30px;padding:3px 8px;font-size:13px}\
 #cpu-freq-table input[type="number"]{height:auto;min-height:30px;padding:3px 8px;font-size:13px}\
 #cpu-freq-table button{height:auto;min-height:30px;padding:3px 12px;font-size:13px}\
+#npu-table{table-layout:fixed;width:100%}\
+#npu-table .td{padding:6px 10px}\
 /* Overclock description inline */\
 .soc-oc-desc{font-size:12px;color:var(--soc-muted);margin-left:8px;white-space:nowrap}\
 /* PPE table responsive wrapper */\
@@ -445,7 +447,7 @@ return view.extend({
 			// NPU & Frame Engine (unified)
 			E('div',{'class':'cbi-section soc-section'},[
 				E('h3',{},_('NPU & Offload Engine')),
-				E('table',{'class':'table'},[
+				E('table',{'class':'table','id':'npu-table'},[
 					E('tr',{'class':'tr'},[ E('td',{'class':'td','width':'33%'},E('strong',{},_('NPU Status'))),
 						E('td',{'class':'td','id':'npu-status'}, st.npu_loaded ?
 							E('span',{'class':'label-success'},_('Active')+(st.npu_device?' ('+st.npu_device+')':'')) :
