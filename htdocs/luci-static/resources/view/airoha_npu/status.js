@@ -430,13 +430,30 @@ return view.extend({
 						E('td',{'class':'td','id':'npu-status'}, st.npu_loaded ?
 							E('span',{'class':'label-success'},_('Active')+(st.npu_device?' ('+st.npu_device+')':'')) :
 							E('span',{'class':'label-danger'},_('Not Active'))) ]),
-					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Firmware / Clock / Cores'))),
-						E('td',{'class':'td','id':'npu-info'}, (st.npu_version||'N/A')+' | '+(st.npu_clock?(st.npu_clock/1e6).toFixed(0)+' MHz':'N/A')+' | '+(st.npu_cores||0)+' cores') ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('SoC Platform'))),
+						E('td',{'class':'td','id':'npu-compatible'}, st.npu_compatible || 'N/A') ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Firmware Version'))),
+						E('td',{'class':'td','id':'npu-fw-ver'}, [
+							E('span', {'id':'npu-fw-dmesg'}, st.npu_fw_ver || ''),
+							st.npu_fw_ver && st.npu_version && st.npu_version !== 'Unknown' ? E('span', {'class':'soc-muted'}, ' | ') : null,
+							E('span', {'class':'soc-muted', 'id':'npu-fw-bin'}, st.npu_version && st.npu_version !== 'Unknown' ? _('Binary: ') + st.npu_version : '')
+						].filter(Boolean)) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Clock / Cores'))),
+						E('td',{'class':'td','id':'npu-clk-cores'}, (st.npu_clock?(st.npu_clock/1e6).toFixed(0)+' MHz':'N/A')+' | '+(st.npu_cores||0)+' cores') ]),
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Reserved Memory'))),
-						E('td',{'class':'td','id':'npu-memory'}, calcTotalMem(memR)+' ('+memR.length+' regions)') ]),
+						E('td',{'class':'td','id':'npu-memory'}, [
+							E('span', {}, calcTotalMem(memR)),
+							E('span', {'class':'soc-muted'}, ' ('+memR.length+' regions)'),
+							st.npu_mem_region_names ? E('div', {'class':'soc-muted', 'style':'font-size:11px;margin-top:2px'}, st.npu_mem_region_names) : null
+						]) ]),
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Description'))),
 						E('td',{'class':'td'}, '8x RISC-V via PCIe RAM — PPE init, flow/PON offload, packet processing') ])
-				])
+				]),
+				// PPE Config (collapsible, only show if data available)
+				st.ppe_config ? E('details', {'style':'margin-top:8px;font-size:12px'}, [
+					E('summary', {'style':'cursor:pointer;color:var(--soc-muted);font-size:12px'}, _('PPE Config Registers')),
+					E('pre', {'id':'ppe-config-pre', 'style':'background:var(--soc-bar-track);padding:8px;border-radius:4px;overflow-x:auto;margin:6px 0 0;font-size:11px;line-height:1.6;white-space:pre-wrap'}, st.ppe_config)
+				]) : null
 			]),
 			// Hardware Offload Engine
 			E('div',{'class':'cbi-section soc-section'},[
