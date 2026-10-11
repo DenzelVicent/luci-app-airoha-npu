@@ -17,7 +17,7 @@ Airoha AN7581 SoC 实时监测与管理面板，适用于 OpenWrt。涵盖 NPU �
 ![硬件卸载引擎](screenshots/硬件卸载引擎.png)
 
 ### PPE 配置寄存器
-![PPE 配置寄存器](screenshots/PPE 配置寄存器.png)
+![PPE 配置寄存器](screenshots/PPE配置寄存器.png)
 
 ### PPE 流卸载表
 ![PPE 流表](screenshots/ppe-flow-table.png)
