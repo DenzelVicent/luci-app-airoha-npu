@@ -29,19 +29,20 @@ var themeCSS = '\
 .soc-section{margin-bottom:16px}\
 .soc-section-title{font-size:15px;font-weight:600;margin-bottom:10px;color:var(--soc-text)}\
 /* CPU frequency table row height consistency */\
-#cpu-freq-table{table-layout:fixed;width:100%}\
 #cpu-freq-table .tr{min-height:40px}\
 #cpu-freq-table .td{vertical-align:middle;padding:6px 10px}\
+#cpu-freq-table td:first-child{white-space:nowrap;width:1%}\
 #cpu-freq-table select{height:auto;min-height:30px;padding:3px 8px;font-size:13px}\
 #cpu-freq-table input[type="number"]{height:auto;min-height:30px;padding:3px 8px;font-size:13px}\
 #cpu-freq-table button{height:auto;min-height:30px;padding:3px 12px;font-size:13px}\
-#npu-table{table-layout:fixed;width:100%}\
-#npu-table .td{padding:6px 10px}\
 /* Overclock description inline */\
 .soc-oc-desc{font-size:12px;color:var(--soc-muted);margin-left:8px;white-space:nowrap}\
 /* PPE table responsive wrapper */\
 .soc-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -1px}\
 .soc-table-wrap .table{min-width:600px;margin-bottom:0}\
+/* NPU table */\
+#npu-table .td{padding:6px 10px}\
+#npu-table td:first-child{white-space:nowrap;width:1%}\
 /* Touch optimization */\
 .soc-card select,.soc-card input,.soc-card button{min-height:36px}\
 /* ── Responsive: Tablet ( < 768px ) ── */\
@@ -436,7 +437,7 @@ return view.extend({
 			E('div',{'class':'cbi-section soc-section'},[
 				E('h3',{},_('CPU Frequency')),
 				E('table',{'class':'table','id':'cpu-freq-table'},[
-					E('tr',{'class':'tr'},[ E('td',{'class':'td','width':'33%'},E('strong',{},_('Current Frequency'))), E('td',{'class':'td'}, renderFreqBar(st.cpu_hw_freq,st.cpu_min_freq,st.cpu_max_freq,st.pll_freq_mhz,st.cpu_governor,freqSource)) ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Current Frequency'))), E('td',{'class':'td'}, renderFreqBar(st.cpu_hw_freq,st.cpu_min_freq,st.cpu_max_freq,st.pll_freq_mhz,st.cpu_governor,freqSource)) ]),
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('CPU Temperature'))), E('td',{'class':'td','id':'cpu-temp'}, tempDisplay) ]),
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Governor'))), E('td',{'class':'td'}, renderGovSelect(st.cpu_avail_governors,st.cpu_governor)) ]),
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Max Frequency'))), E('td',{'class':'td'}, renderMaxFreqSelect(st.cpu_avail_freqs,st.cpu_max_freq)) ]),
@@ -448,7 +449,7 @@ return view.extend({
 			E('div',{'class':'cbi-section soc-section'},[
 				E('h3',{},_('NPU & Offload Engine')),
 				E('table',{'class':'table','id':'npu-table'},[
-					E('tr',{'class':'tr'},[ E('td',{'class':'td','width':'33%'},E('strong',{},_('NPU Status'))),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('NPU Status'))),
 						E('td',{'class':'td','id':'npu-status'}, st.npu_loaded ?
 							E('span',{'class':'label-success'},_('Active')+(st.npu_device?' ('+st.npu_device+')':'')) :
 							E('span',{'class':'label-danger'},_('Not Active'))) ]),
