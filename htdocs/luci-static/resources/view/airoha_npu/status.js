@@ -159,8 +159,8 @@ function injectCSS() {
 /* ── Helpers ── */
 
 var psePortMap = [
-	{ name: 'GDM1', label: 'Switch 1G',   color: '#ff9800' },
-	{ name: 'GDM2', label: 'WAN 10G',     color: '#4caf50' },
+	{ name: 'GDM1', label: 'Switch 1G (LAN2/3/4)', color: '#ff9800' },
+	{ name: 'GDM2', label: 'PON WAN',              color: '#4caf50' },
 	{ name: 'CDM1', label: 'CPU DMA 1',   color: '#607d8b' },
 	{ name: 'GDM3', label: 'GDM3',        color: '#607d8b' },
 	{ name: 'CDM2', label: 'CPU DMA 2',   color: '#607d8b' },
@@ -168,7 +168,7 @@ var psePortMap = [
 	{ name: 'PPE1', label: 'PPE Eng 1',   color: '#2196f3' },
 	{ name: 'PPE2', label: 'PPE Eng 2',   color: '#2196f3' },
 	{ name: 'CDM3', label: 'CPU DMA 3',   color: '#607d8b' },
-	{ name: 'GDM4', label: 'LAN2 10G',    color: '#4caf50' }
+	{ name: 'GDM4', label: 'LAN1 2.5G',   color: '#4caf50' }
 ];
 
 function fmtFreq(khz) { return (!khz || khz === 0) ? 'N/A' : (khz / 1000).toFixed(0) + ' MHz'; }
@@ -249,7 +249,7 @@ function renderFeDiagram(fe, st) {
 		E('div', { 'class': 'soc-label', 'style': 'margin-bottom:4px' }, '8x RISC-V via PCIe RAM'),
 		E('div', { 'style': 'font-size:11px' }, [
 			E('span', { 'class': 'soc-muted' }, _('Manages: ')),
-			E('span', { 'class': 'soc-text', 'style': 'font-size:11px' }, _('PPE init, flow offload, packet processing'))
+			E('span', { 'class': 'soc-text', 'style': 'font-size:11px' }, _('PPE init, flow/PON offload, packet processing'))
 		])
 	]);
 
@@ -303,9 +303,9 @@ function renderFeDiagram(fe, st) {
 		]),
 		// Row 1: GDM ports
 		E('div', { 'class': 'soc-gdm-grid' }, [
-			gdmCard('gdm1', 'GDM1', 'Internal Switch (1G LAN3/4)', '#ff9800', 'P0'),
-			gdmCard('gdm2', 'GDM2', 'WAN (USXGMII 10G)', '#4caf50', 'P1'),
-			gdmCard('gdm4', 'GDM4', 'LAN2 (USXGMII 10G)', '#4caf50', 'P9')
+			gdmCard('gdm1', 'GDM1', 'Internal Switch (1G LAN2/3/4)', '#ff9800', 'P0'),
+			gdmCard('gdm2', 'GDM2', 'PON Data Path (WAN)', '#4caf50', 'P1'),
+			gdmCard('gdm4', 'GDM4', 'LAN1 (EN8811H 2.5G)', '#4caf50', 'P9')
 		]),
 		// Row 2: CDM1/CDM2 (CPU DMA)
 		E('div', { 'style': 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px' }, [
