@@ -28,8 +28,14 @@ var themeCSS = '\
 /* Section spacing */\
 .soc-section{margin-bottom:16px}\
 .soc-section-title{font-size:15px;font-weight:600;margin-bottom:10px;color:var(--soc-text)}\
-/* Overclock description */\
-.soc-oc-desc{font-size:12px;color:var(--soc-muted);margin-top:6px;line-height:1.5;max-width:480px}\
+/* CPU frequency table row height consistency */\
+#cpu-freq-table .tr{min-height:40px}\
+#cpu-freq-table .td{vertical-align:middle}\
+#cpu-freq-table select{min-height:32px;height:32px;padding:2px 8px}\
+#cpu-freq-table input[type="number"]{min-height:32px;height:32px}\
+#cpu-freq-table button{min-height:32px;height:32px}\
+/* Overclock description inline */\
+.soc-oc-desc{font-size:12px;color:var(--soc-muted);margin-left:8px;white-space:nowrap}\
 /* PPE table responsive wrapper */\
 .soc-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -1px}\
 .soc-table-wrap .table{min-width:600px;margin-bottom:0}\
@@ -381,7 +387,7 @@ function renderOcControls() {
 	}},_('Apply'));
 	return E('div',{'style':'display:flex;align-items:center;gap:8px;flex-wrap:wrap'},[
 		inp, E('span',{'class':'soc-muted'},'MHz'), btn,
-		E('div',{'class':'soc-oc-desc'},[_('Direct PLL programming. Governor locked to performance mode.'),E('br'),_('Stock max: 1200 MHz. Tested stable up to 1500 MHz.')])
+		E('span',{'class':'soc-oc-desc'},_('Direct PLL programming. Governor locked to performance mode. Stock max: 1200 MHz. Tested stable up to 1500 MHz.'))
 	]);
 }
 
@@ -415,7 +421,7 @@ return view.extend({
 			// CPU Frequency
 			E('div',{'class':'cbi-section soc-section'},[
 				E('h3',{},_('CPU Frequency')),
-				E('table',{'class':'table'},[
+				E('table',{'class':'table','id':'cpu-freq-table'},[
 					E('tr',{'class':'tr'},[ E('td',{'class':'td','width':'33%'},E('strong',{},_('Current Frequency'))), E('td',{'class':'td'}, renderFreqBar(st.cpu_hw_freq,st.cpu_min_freq,st.cpu_max_freq,st.pll_freq_mhz,st.cpu_governor,freqSource)) ]),
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('CPU Temperature'))), E('td',{'class':'td','id':'cpu-temp'}, tempDisplay) ]),
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Governor'))), E('td',{'class':'td'}, renderGovSelect(st.cpu_avail_governors,st.cpu_governor)) ]),
