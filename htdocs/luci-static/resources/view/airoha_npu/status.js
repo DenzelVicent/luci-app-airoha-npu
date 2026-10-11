@@ -214,7 +214,7 @@ function renderFeDiagram(fe, st) {
 				E('span', { 'class': 'soc-label' }, 'P'+psePort)
 			]),
 			E('div', { 'class': 'soc-label', 'style': 'margin-bottom:6px' }, label),
-			E('div', { 'style': 'display:flex;align-items:center;min-height:32px;font-size:12px;margin-bottom:4px' }, [
+			E('div', { 'style': 'display:flex;align-items:center;min-height:20px;font-size:12px;margin-bottom:4px' }, [
 				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('发送: ')), E('span', { 'class': 'soc-text' }, fmtK(d.tx))]),
 				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('接收: ')), E('span', { 'class': 'soc-text' }, fmtK(d.rx))]),
 				E('span', { 'style': 'flex:1' }, [
@@ -222,7 +222,7 @@ function renderFeDiagram(fe, st) {
 					E('span', { 'style': 'color:' + ((d.tx_drop || 0) + (d.rx_drop || 0) > 0 ? '#f44336' : 'inherit') }, fmtK((d.tx_drop || 0) + (d.rx_drop || 0)))
 				])
 			]),
-			pq ? E('div', { 'style': 'display:flex;align-items:center;min-height:32px;font-size:12px' }, [
+			pq ? E('div', { 'style': 'display:flex;align-items:center;min-height:20px;font-size:12px' }, [
 				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('入队: ') + pq.iq)]),
 				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('出队: ') + pq.oq)]),
 				E('span', { 'style': 'flex:1' }, pq.drops > 0 ? [E('span', { 'style': 'color:#f44336' }, _('丢包: ') + fmtK(pq.drops))] : [])
@@ -248,12 +248,12 @@ function renderFeDiagram(fe, st) {
 					E('div', { 'style': 'background:'+barCol+';height:100%;width:'+pct+'%;transition:width .5s;border-radius:4px' })
 				])
 			]),
-			E('div', { 'style': 'display:flex;align-items:center;min-height:32px;font-size:12px' }, [
+			E('div', { 'style': 'display:flex;align-items:center;min-height:20px;font-size:12px' }, [
 				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('CPU: ') + fmtK(d.rx_cpu||0))]),
 				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('硬件转发: ') + fmtK(d.rx_hwf||0))]),
 				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('发送: ') + fmtK(d.tx||0))])
 			]),
-			pq ? E('div', { 'style': 'display:flex;align-items:center;min-height:32px;font-size:12px' }, [
+			pq ? E('div', { 'style': 'display:flex;align-items:center;min-height:20px;font-size:12px' }, [
 				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('入队: ') + pq.iq)]),
 				E('span', { 'style': 'flex:1' }, [E('span', { 'class': 'soc-muted' }, _('出队: ') + pq.oq)]),
 				E('span', { 'style': 'flex:1' }, pq.drops > 0 ? [E('span', { 'style': 'color:#f44336' }, _('丢包: ') + fmtK(pq.drops))] : [])
@@ -269,11 +269,11 @@ function renderFeDiagram(fe, st) {
 
 	// PPE engines card
 	var ppeCard = E('div', { 'class': 'soc-fe-ppe soc-fe-card' }, [
-		E('div', { 'style': 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px' }, [
+		E('div', { 'style': 'display:flex;justify-content:space-between;align-items:center;margin-bottom:2px' }, [
 			E('span', { 'style': 'font-weight:bold;color:#2196f3;font-size:14px' }, 'PPE ' + _('引擎')),
 			E('span', { 'class': 'soc-label' }, 'P5 / P6 / P7')
 		]),
-		E('div', { 'style': 'display:flex;align-items:center;min-height:32px;font-size:12px;flex:1' }, [
+		E('div', { 'style': 'display:flex;align-items:center;min-height:20px;font-size:12px;flex:1' }, [
 			E('span', { 'style': 'flex:1' }, [
 				E('span', { 'class': 'soc-muted' }, _('已绑定: ')),
 				E('span', { 'class': 'soc-text', 'style': 'font-weight:bold', 'id': 'fe-ppe-bound' }, (st.offload_bound||0).toString())
