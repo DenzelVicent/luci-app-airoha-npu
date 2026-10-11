@@ -82,6 +82,28 @@ make menuconfig
 make package/luci-app-airoha-npu/compile V=s
 ```
 
+### 使用 SDK 独立编译 APK 包
+```sh
+# 1. 下载 ImmortalWrt SDK（仅 snapshots 提供 airoha-an7581 SDK）
+wget https://downloads.immortalwrt.org/snapshots/targets/airoha/an7581/immortalwrt-sdk-airoha-an7581.Linux-x86_64.tar.zst
+tar --use-compress-program=unzstd -xf immortalwrt-sdk-*.tar.zst
+cd immortalwrt-sdk-*
+
+# 2. 克隆本仓库到 SDK 的 package 目录
+git clone https://github.com/luanmuc/luci-app-airoha-npu.git package/luci-app-airoha-npu
+
+# 3. 更新 feeds
+./scripts/feeds update -a
+./scripts/feeds install -a
+
+# 4. 编译软件包
+make defconfig
+make package/luci-app-airoha-npu/compile V=s
+
+# 5. 输出 APK 在 bin/packages/ 目录下
+ls bin/packages/aarch64_generic/base/luci-app-airoha-npu_*.apk
+```
+
 ### 手动安装（开发调试）
 ```sh
 # 将文件复制到路由器
