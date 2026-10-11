@@ -19,12 +19,10 @@ var themeCSS = '\
 .soc-text{color:var(--soc-text)}\
 .soc-label{font-size:11px;color:var(--soc-muted)}\
 .soc-bar-track{background:var(--soc-bar-track);border-radius:4px;overflow:hidden}\
-.soc-pse-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}\
-.soc-pse-cell{background:var(--soc-card-bg);border:1px solid var(--soc-border);border-radius:5px;padding:6px 8px;font-size:12px;transition:border-color .3s}\
-.soc-gdm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}\
-.soc-gdm-grid .soc-card{min-width:0;min-height:110px;display:flex;flex-direction:column}\
-.soc-cdm-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}\
-.soc-cdm-grid .soc-card{min-height:110px;display:flex;flex-direction:column}\
+.soc-fe-layout{display:flex;gap:12px;margin-bottom:10px}\
+.soc-fe-left{flex:1.2;min-width:0}\
+.soc-fe-right{flex:1;min-width:0}\
+.soc-queue-bar{display:flex;gap:10px;font-size:11px;margin-top:auto;padding-top:6px;border-top:1px solid var(--soc-border)}\
 /* Section spacing */\
 .soc-section{margin-bottom:16px}\
 .soc-section-title{font-size:15px;font-weight:600;margin-bottom:10px;color:var(--soc-text)}\
@@ -49,16 +47,12 @@ var themeCSS = '\
 .soc-card select,.soc-card input,.soc-card button{min-height:36px}\
 /* ── Responsive: Tablet ( < 768px ) ── */\
 @media(max-width:768px){\
-  .soc-gdm-grid{grid-template-columns:1fr;gap:8px}\
-  .soc-cdm-grid{grid-template-columns:1fr;gap:8px}\
-  .soc-pse-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:4px}\
+  .soc-fe-layout{flex-direction:column;gap:8px}\
   .soc-card{padding:12px}\
   #fe-diagram .soc-card{padding:10px 12px}\
 }\
 /* ── Responsive: Mobile ( < 480px ) ── */\
 @media(max-width:480px){\
-  .soc-pse-grid{grid-template-columns:repeat(2,1fr);gap:4px}\
-  .soc-pse-cell{padding:5px 6px;font-size:11px}\
   .soc-card{padding:10px;border-radius:6px}\
   .soc-label{font-size:10px}\
   .soc-text{font-size:13px}\
@@ -194,14 +188,16 @@ function renderFeDiagram(fe, st) {
 	if (!fe || fe.error) return E('div', { 'class': 'soc-muted' }, _('devmem not available on this build'));
 	var ports = Array.isArray(fe.pse_ports) ? fe.pse_ports : [];
 
-	// Helper: GDM card
-	function gdmCard(key, name, label, color, pse) {
+	// Helper: GDM card with PSE queue info
+	function gdmCard(key, name, label, color, psePort) {
 		var d = fe[key] || {};
 		var active = d.tx > 0 || d.rx > 0;
-		return E('div', { 'class': 'soc-card soc-card-accent', 'style': 'border-left-color:'+color }, [
+		var pq = psePort != null ? ports.find(function(p){ return p.port === psePort; }) : null;
+		var drop = (pq && pq.drops > 0) || d.tx_drop > 0 || d.rx_drop > 0;
+		return E('div', { 'class': 'soc-card soc-card-accent', 'style': 'border-left-color:'+color + (drop?';border-color:#f44336':'') }, [
 			E('div', { 'style': 'display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px' }, [
 				E('span', { 'style': 'font-weight:bold;color:'+color+';font-size:14px' }, name),
-				E('span', { 'class': 'soc-label' }, pse)
+				E('span', { 'class': 'soc-label' }, 'P'+psePort)
 			]),
 			E('div', { 'class': 'soc-label', 'style': 'margin-bottom:6px' }, label),
 			E('div', { 'style': 'display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px' }, [
@@ -211,20 +207,26 @@ function renderFeDiagram(fe, st) {
 				E('span', { 'style': 'color:#f44336' }, 'TX Drop'), E('span', { 'style': 'color:#f44336;text-align:right' }, fmtK(d.tx_drop))
 			] : []).concat(d.rx_drop > 0 ? [
 				E('span', { 'style': 'color:#f44336' }, 'RX Drop'), E('span', { 'style': 'color:#f44336;text-align:right' }, fmtK(d.rx_drop))
-			] : []))
+			] : [])),
+			pq ? E('div', { 'class': 'soc-queue-bar' }, [
+				E('span', { 'class': 'soc-muted' }, 'IQ '+pq.iq),
+				E('span', { 'class': 'soc-muted' }, 'OQ '+pq.oq),
+				pq.drops > 0 ? E('span', { 'style': 'color:#f44336' }, 'Drop '+fmtK(pq.drops)) : null
+			].filter(Boolean)) : null
 		]);
 	}
 
-	// Helper: CDM offload bar
-	function cdmCard(key, name, label, pse) {
+	// Helper: CDM offload bar with PSE queue info
+	function cdmCard(key, name, label, psePort) {
 		var d = fe[key] || {};
 		var total = (d.rx_cpu||0) + (d.rx_hwf||0);
 		var pct = total > 0 ? ((d.rx_hwf/total)*100).toFixed(1) : '0.0';
 		var barCol = total===0 ? 'var(--soc-border)' : parseFloat(pct)>80 ? '#4caf50' : parseFloat(pct)>50 ? '#ff9800' : '#f44336';
+		var pq = psePort != null ? ports.find(function(p){ return p.port === psePort; }) : null;
 		return E('div', { 'class': 'soc-card' }, [
 			E('div', { 'style': 'display:flex;justify-content:space-between;margin-bottom:4px' }, [
-				E('span', { 'style': 'font-weight:bold;color:#607d8b;font-size:13px' }, name+' '+pse),
-				E('span', { 'class': 'soc-label' }, label)
+				E('span', { 'style': 'font-weight:bold;color:#607d8b;font-size:13px' }, name),
+				E('span', { 'class': 'soc-label' }, label+' (P'+psePort+')')
 			]),
 			E('div', { 'class': 'soc-text', 'style': 'font-size:12px;margin-bottom:4px' }, _('HW Offload: ') + pct + '%'),
 			E('div', { 'class': 'soc-bar-track', 'style': 'height:6px' }, [
@@ -234,27 +236,23 @@ function renderFeDiagram(fe, st) {
 				E('span', { 'class': 'soc-muted' }, _('CPU: ') + fmtK(d.rx_cpu||0)),
 				E('span', { 'class': 'soc-muted' }, _('HWF: ') + fmtK(d.rx_hwf||0)),
 				E('span', { 'class': 'soc-muted' }, _('TX: ') + fmtK(d.tx||0))
-			])
+			]),
+			pq ? E('div', { 'class': 'soc-queue-bar' }, [
+				E('span', { 'class': 'soc-muted' }, 'IQ '+pq.iq),
+				E('span', { 'class': 'soc-muted' }, 'OQ '+pq.oq),
+				pq.drops > 0 ? E('span', { 'style': 'color:#f44336' }, 'Drop '+fmtK(pq.drops)) : null
+			].filter(Boolean)) : null
 		]);
 	}
 
 
-	// NPU indicator
-	var npuActive = st.npu_loaded;
-	var npuCard = E('div', { 'class': 'soc-card', 'style': 'border-color:'+(npuActive?'#00bcd4':'var(--soc-border)') }, [
-		E('div', { 'style': 'display:flex;justify-content:space-between;align-items:center;margin-bottom:4px' }, [
-			E('span', { 'style': 'font-weight:bold;color:#00bcd4;font-size:14px' }, 'NPU'),
-			E('span', { 'style': 'background:'+(npuActive?'#00695c':'#666')+';color:#fff;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:600' }, npuActive ? _('ACTIVE') : _('OFF'))
-		]),
-		E('div', { 'class': 'soc-label', 'style': 'margin-bottom:4px' }, '8x RISC-V via PCIe RAM'),
-		E('div', { 'style': 'font-size:11px' }, [
-			E('span', { 'class': 'soc-muted' }, _('Manages: ')),
-			E('span', { 'class': 'soc-text', 'style': 'font-size:11px' }, _('PPE init, flow/PON offload, packet processing'))
-		])
-	]);
+	// PSE buffer
+	var pseT = (fe.pse_used||0)+(fe.pse_free||0);
+	var pseP = pseT>0 ? ((fe.pse_used/pseT)*100).toFixed(1) : '0';
+	var pseCol = parseFloat(pseP)>80?'#f44336':parseFloat(pseP)>50?'#ff9800':'#4caf50';
 
-	// PPE engines with flow count
-	var ppeCard = E('div', { 'class': 'soc-card', 'style': 'border-color:#2196f3' }, [
+	// PPE engines card
+	var ppeCard = E('div', { 'class': 'soc-card', 'style': 'border-color:#2196f3;margin-bottom:10px' }, [
 		E('div', { 'style': 'display:flex;justify-content:space-between;align-items:center;margin-bottom:4px' }, [
 			E('span', { 'style': 'font-weight:bold;color:#2196f3;font-size:14px' }, 'PPE Engines'),
 			E('span', { 'class': 'soc-label' }, 'P5 / P6 / P7')
@@ -271,25 +269,6 @@ function renderFeDiagram(fe, st) {
 		])
 	]);
 
-	// PSE buffer
-	var pseT = (fe.pse_used||0)+(fe.pse_free||0);
-	var pseP = pseT>0 ? ((fe.pse_used/pseT)*100).toFixed(1) : '0';
-	var pseCol = parseFloat(pseP)>80?'#f44336':parseFloat(pseP)>50?'#ff9800':'#4caf50';
-
-	// PSE port cells (all ports except P3/GDM3, which is unused on XG-040G-MD)
-	var portCells = ports.filter(function(p) { return p.port !== 3; }).map(function(p) {
-		var info = psePortMap[p.port] || { name:'P'+p.port, label:'?', color:'#666' };
-		var drop = p.drops > 0;
-		return E('div', { 'class': 'soc-pse-cell', 'style': drop ? 'border-color:#f44336' : '' }, [
-			E('div', { 'style': 'font-weight:600;color:'+info.color+';font-size:11px' }, 'P'+p.port+' '+info.name),
-			E('div', { 'style': 'display:flex;gap:8px;font-size:11px;margin-top:2px' }, [
-				E('span', { 'class': 'soc-muted' }, 'IQ '+p.iq),
-				E('span', { 'class': 'soc-muted' }, 'OQ '+p.oq),
-				drop ? E('span', { 'style': 'color:#f44336' }, fmtK(p.drops)) : null
-			].filter(Boolean))
-		]);
-	});
-
 	return E('div', { 'id': 'fe-diagram' }, [
 		// PSE buffer bar
 		E('div', { 'class': 'soc-card', 'style': 'margin-bottom:10px' }, [
@@ -301,25 +280,21 @@ function renderFeDiagram(fe, st) {
 				E('div', { 'style': 'background:'+pseCol+';height:100%;width:'+pseP+'%;border-radius:4px;transition:width .5s' })
 			])
 		]),
-		// Row 1: GDM ports
-		E('div', { 'class': 'soc-gdm-grid' }, [
-			gdmCard('gdm2', 'PON & WAN', 'GDM2 (USXGMII 10G)', '#4caf50', 'P1'),
-			gdmCard('gdm4', 'LAN1', 'GDM4 (EN8811H 2.5G)', '#4caf50', 'P9'),
-			gdmCard('gdm1', 'LAN2/3/4', 'GDM1 (Internal Switch 1G)', '#ff9800', 'P0')
-		]),
-		// Row 2: CDM1/CDM2 (CPU DMA)
-		E('div', { 'style': 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px' }, [
-			cdmCard('cdm1', 'CDM1', 'CPU DMA 1', 'P2'),
-			cdmCard('cdm2', 'CDM2', 'CPU DMA 2', 'P4'),
-		]),
-		// Row 3: PPE + NPU
-		E('div', { 'style': 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px' }, [
-			ppeCard,
-			npuCard
-		]),
-		// PSE port grid
-		E('div', { 'class': 'soc-text', 'style': 'font-size:12px;font-weight:600;margin-bottom:6px' }, _('PSE Port Queue Status')),
-		E('div', { 'class': 'soc-pse-grid' }, portCells)
+		// Two-column: GDM (left) | CDM + PPE (right)
+		E('div', { 'class': 'soc-fe-layout' }, [
+			// Left: GDM ports
+			E('div', { 'class': 'soc-fe-left' }, [
+				gdmCard('gdm2', 'PON & WAN', 'GDM2 (USXGMII 10G)', '#4caf50', 1),
+				gdmCard('gdm4', 'LAN1', 'GDM4 (EN8811H 2.5G)', '#4caf50', 9),
+				gdmCard('gdm1', 'LAN2/3/4', 'GDM1 (Internal Switch 1G)', '#ff9800', 0)
+			]),
+			// Right: CDM + PPE
+			E('div', { 'class': 'soc-fe-right' }, [
+				cdmCard('cdm1', 'CDM1', 'CPU DMA 1', 2),
+				cdmCard('cdm2', 'CDM2', 'CPU DMA 2', 4),
+				ppeCard
+			])
+		])
 	]);
 }
 
@@ -447,9 +422,9 @@ return view.extend({
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('CPU Cores'))), E('td',{'class':'td'},(st.cpu_count||0).toString()) ])
 				])
 			]),
-			// NPU & Frame Engine (unified)
+			// NPU
 			E('div',{'class':'cbi-section soc-section'},[
-				E('h3',{},_('NPU & Offload Engine')),
+				E('h3',{},_('NPU')),
 				E('table',{'class':'table','id':'npu-table'},[
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('NPU Status'))),
 						E('td',{'class':'td','id':'npu-status'}, st.npu_loaded ?
@@ -458,10 +433,14 @@ return view.extend({
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Firmware / Clock / Cores'))),
 						E('td',{'class':'td','id':'npu-info'}, (st.npu_version||'N/A')+' | '+(st.npu_clock?(st.npu_clock/1e6).toFixed(0)+' MHz':'N/A')+' | '+(st.npu_cores||0)+' cores') ]),
 					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Reserved Memory'))),
-						E('td',{'class':'td','id':'npu-memory'}, calcTotalMem(memR)+' ('+memR.length+' regions)') ])
-				]),
-				// Frame Engine diagram (includes PPE flows, NPU, and Ethernet ports)
-				E('div',{'style':'margin-top:12px'},[ E('h4',{'class':'soc-text','style':'font-size:14px;margin-bottom:8px'},_('Frame Engine'))]),
+						E('td',{'class':'td','id':'npu-memory'}, calcTotalMem(memR)+' ('+memR.length+' regions)') ]),
+					E('tr',{'class':'tr'},[ E('td',{'class':'td'},E('strong',{},_('Description'))),
+						E('td',{'class':'td'}, '8x RISC-V via PCIe RAM — PPE init, flow/PON offload, packet processing') ])
+				])
+			]),
+			// Hardware Offload Engine
+			E('div',{'class':'cbi-section soc-section'},[
+				E('h3',{},_('Hardware Offload Engine')),
 				E('div',{'id':'fe-container'}, renderFeDiagram(fe, st))
 			]),
 			// PPE Flow Table - with responsive scroll wrapper
