@@ -6,15 +6,18 @@ Airoha AN7581 SoC 实时监测与管理面板，适用于 OpenWrt。涵盖 NPU �
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)
 ![OpenWrt](https://img.shields.io/badge/OpenWrt-24.10%2B-brightgreen.svg)
-![Version](https://img.shields.io/badge/version-1.2.1-orange.svg)
+![Version](https://img.shields.io/badge/version-1.3.0-orange.svg)
 
 ## 界面截图
 
-### CPU 频率与超频
-![CPU 频率](screenshots/cpu-frequency.png)
+### CPU 频率与 NPU 状态
+![CPU 频率与 NPU 状态](screenshots/cpu&npu.png)
 
-### NPU 与卸载引擎
-![NPU 与卸载引擎](screenshots/npu-offload-engine.png)
+### 硬件卸载引擎
+![硬件卸载引擎](screenshots/硬件卸载引擎.png)
+
+### PPE 配置寄存器
+![PPE 配置寄存器](screenshots/PPE 配置寄存器.png)
 
 ### PPE 流卸载表
 ![PPE 流表](screenshots/ppe-flow-table.png)
@@ -30,17 +33,22 @@ Airoha AN7581 SoC 实时监测与管理面板，适用于 OpenWrt。涵盖 NPU �
 
 ### NPU 与卸载引擎
 - NPU 固件版本（TLB 格式）、时钟频率、核心数
-- NPU 负载状态（活跃/非活跃）及保留内存区域
-- PPE 流卸载摘要（已绑定 / 总条目数）
+- NPU 状态（已激活/未激活）及保留内存
+- PPE 引擎摘要（已绑定 / 总计条目数）
 
 ### Frame Engine 可视化
 - **PSE 共享缓冲区** 使用率指示条（拥塞指标）
-- **GDM 端口卡片**，实时显示 TX/RX 数据包计数与丢包数：
-  - GDM1：内部交换机（1G LAN3/4）
-  - GDM2：WAN（USXGMII 10G）
-  - GDM4：LAN2（USXGMII 10G）
+- **GDM 端口卡片**，实时显示发送/接收/丢包计数与入队/出队状态：
+  - GDM2：PON & WAN（USXGMII 10G）
+  - GDM4：LAN1（EN8811H 2.5G）
+  - GDM1：LAN2/3/4（内部交换 1G）
 - **CDM 卸载比率** 指示条 — 硬件转发（PPE）vs CPU 路径数据包对比
-- **PSE 端口队列状态** 网格（P0-P9），含 IQ/OQ 队列深度与丢包计数
+- **PPE 引擎卡片** — 已绑定/总计流表条目数
+- 颜色编码：绿色（PON/WAN）、橙色（LAN）、灰色（CDM）、蓝色（PPE）
+
+### PPE 配置寄存器
+- 可折叠区域，显示 PPE 硬件转发引擎底层寄存器配置
+- 用于调试和诊断
 
 ### PPE 流卸载表
 - 显示前 100 条 PPE 条目，包含状态（BND/UNB）、类型（IPv4/IPv6/L2B）、五元组及 MAC 地址
@@ -86,6 +94,20 @@ scp htdocs/luci-static/resources/view/airoha_npu/status.js root@router:/www/luci
 ssh root@router 'chmod +x /usr/libexec/rpcd/luci.airoha_npu && /etc/init.d/rpcd restart'
 ```
 
+### 一键调试脚本（推荐）
+```sh
+# 使用 scp_deploy.sh 一键部署（只需输入一次密码）
+./scp_deploy.sh 192.168.1.1 root
+
+# 参数说明：
+#   $1 - 路由器 IP（默认 192.168.1.1）
+#   $2 - SSH 用户名（默认 root）
+
+# 部署完成后浏览器打开：
+# http://192.168.1.1/cgi-bin/luci/admin/status/airoha_npu
+# 提示：Ctrl+Shift+R 硬刷新以加载最新 JS
+```
+
 ## 数据来源
 
 | 数据 | 来源 | 是否必需 |
@@ -128,6 +150,15 @@ luci-app-airoha-npu/
 | `setOverclock` | 直接 PLL 频率设定 | `freq_mhz` |
 
 ## 版本历史
+
+### v1.3.0
+- UI 样式全面优化：三列等宽布局，统一 32px 行高，12px 字体
+- 颜色分类：绿色 (PON/WAN)、橙色 (LAN)、灰色 (CDM)、蓝色 (PPE)
+- PPE Config 折叠区域自定义样式，箭头旋转动画
+- 入队/出队/丢包三列布局，统一格式
+- 删除 deploy.ps1，保留 scp_deploy.sh 一键部署脚本
+- 修复 GDM4 颜色编码（LAN1 2.5G 改为橙色）
+- 修复 PPE 引擎卡片边框样式（改为左边框）
 
 ### v1.2.1
 - 修复 PSE 端口映射表（修正 P0-P9 索引，补充缺失的 P9）
