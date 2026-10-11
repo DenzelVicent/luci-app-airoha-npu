@@ -29,11 +29,12 @@ var themeCSS = '\
 .soc-section{margin-bottom:16px}\
 .soc-section-title{font-size:15px;font-weight:600;margin-bottom:10px;color:var(--soc-text)}\
 /* CPU frequency table row height consistency */\
+#cpu-freq-table{table-layout:fixed;width:100%}\
 #cpu-freq-table .tr{min-height:40px}\
-#cpu-freq-table .td{vertical-align:middle}\
-#cpu-freq-table select{min-height:32px;height:32px;padding:2px 8px}\
-#cpu-freq-table input[type="number"]{min-height:32px;height:32px}\
-#cpu-freq-table button{min-height:32px;height:32px}\
+#cpu-freq-table .td{vertical-align:middle;padding:6px 10px}\
+#cpu-freq-table select{height:auto;min-height:30px;padding:3px 8px;font-size:13px}\
+#cpu-freq-table input[type="number"]{height:auto;min-height:30px;padding:3px 8px;font-size:13px}\
+#cpu-freq-table button{height:auto;min-height:30px;padding:3px 12px;font-size:13px}\
 /* Overclock description inline */\
 .soc-oc-desc{font-size:12px;color:var(--soc-muted);margin-left:8px;white-space:nowrap}\
 /* PPE table responsive wrapper */\
@@ -357,13 +358,24 @@ function updateFreqBar(hw, min, max, pll, gov, freqSource) {
 	if (ml) ml.textContent = fmtFreq(s.max);
 }
 
+var govNameMap = {
+	'performance': '性能模式',
+	'ondemand': '按需调度',
+	'schedutil': '调度器',
+	'powersave': '节能模式',
+	'conservative': '保守模式',
+	'userspace': '用户空间'
+};
 function renderGovSelect(avail, active) {
 	var gs = (avail||'').trim().split(/\s+/).filter(Boolean);
 	if (!gs.length) return E('span',{},'N/A');
-	return E('select', { 'id':'cpu-governor-select','class':'cbi-input-select','style':'min-width:140px','change':function(ev){
+	return E('select', { 'id':'cpu-governor-select','class':'cbi-input-select','style':'min-width:160px','change':function(ev){
 		var g=ev.target.value; ev.target.disabled=true;
 		callSetGovernor(g).then(function(r){ev.target.disabled=false;if(r&&r.error) ui.addNotification(null,E('p',{},_('Error: ')+r.error),'error');}).catch(function(){ev.target.disabled=false;});
-	}}, gs.map(function(g){return E('option',{'value':g,'selected':g===active?'':null},g);}));
+	}}, gs.map(function(g){
+		var label = govNameMap[g] ? (govNameMap[g]+' ('+g+')') : g;
+		return E('option',{'value':g,'selected':g===active?'':null},label);
+	}));
 }
 function renderMaxFreqSelect(avail, cur) {
 	var fs = (avail||'').trim().split(/\s+/).filter(Boolean);
