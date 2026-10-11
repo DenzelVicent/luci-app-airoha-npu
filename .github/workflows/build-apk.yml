@@ -75,8 +75,14 @@ jobs:
           ls -la package/luci-app-airoha-npu/
 
       # ----------------------------------------------------------
-      # 步骤 4: 编译 APK
+      # 步骤 4: 生成默认配置并编译
       # ----------------------------------------------------------
+      - name: 生成默认配置
+        working-directory: sdk
+        run: |
+          # SDK 首次运行需要 .config，defconfig 生成默认配置（避免触发交互式 menuconfig）
+          make defconfig
+
       - name: 编译 luci-app-airoha-npu
         working-directory: sdk
         run: |
